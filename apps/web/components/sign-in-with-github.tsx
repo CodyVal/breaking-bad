@@ -3,7 +3,7 @@
 import { createClient } from "@/utils/supabase/client";
 import { Button } from "./ui/button";
 
-export function LoginWithGithubButton() {
+export function SignInWithGithubButton({ ...props }: React.ComponentProps<typeof Button>) {
   const supabase = createClient();
 
   const handleLogin = async () => {
@@ -15,5 +15,5 @@ export function LoginWithGithubButton() {
     });
   };
 
-  return <Button onClick={handleLogin}>Login with Github</Button>;
+  return <Button onClick={handleLogin} {...props}>Sign in with Github</Button>;
 }
