@@ -21,9 +21,10 @@ export async function GET(request: Request) {
   }
 
   const forwardedHost = request.headers.get('x-forwarded-host');
+  const forwardedProto = request.headers.get('x-forwarded-proto');
 
   if (forwardedHost) {
-    return NextResponse.redirect(`https://${forwardedHost}/${next}`);
+    return NextResponse.redirect(`${forwardedProto || 'https'}://${forwardedHost}/${next}`);
   }
 
   if (redirectTo) {
