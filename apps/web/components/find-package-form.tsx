@@ -4,10 +4,14 @@ import { useState } from 'react'
 import { Input } from './ui/input'
 import { Label } from './ui/label'
 import debounce from 'debounce'
+import { TrackPackage } from './track-package'
+import TrackedPackages from './tracked-packages'
 
-interface FindPackageFormProps {}
+interface FindPackageFormProps {
+  trackedPackagesNames?: string[]
+}
 
-export function FindPackageForm({}: FindPackageFormProps) {
+export function FindPackageForm({ trackedPackagesNames = [] }: FindPackageFormProps) {
   const [data, setData] = useState([])
   const [watchList, setWatchList] = useState([])
 
@@ -42,17 +46,7 @@ export function FindPackageForm({}: FindPackageFormProps) {
           required
         />
       </form>
-      {data.map((pkg: any) => (
-        <div
-          key={pkg.package.name}
-          className="flex flex-col gap-2 w-full max-w-md text-sm"
-        >
-          <div className="text-foreground border-l-2 border-foreground px-4">
-            {pkg.package.name}
-          </div>
-        </div>
-      ))}
-      <pre>{JSON.stringify(data, null, 2)}</pre>
+      <TrackedPackages pkgs={data} trackedPackagesNames={trackedPackagesNames} />
     </>
   )
 }

@@ -128,3 +128,54 @@ export const signOutAction = async () => {
   await supabase.auth.signOut();
   return redirect("/sign-in");
 };
+
+export const trackPackageAction = async (formData: FormData) => {
+  const pkgName = formData.get("pkgName") as string;
+  const pkgScope = formData.get("pkgScope") as string|null;
+  const supabase = createClient();
+  const { data: { user }} = await supabase.auth.getUser();
+
+  const { data: pkg, error: pkgError } = await supabase.from('packages').upsert({
+    name: pkgName,
+    scope: pkgScope
+  }, { onConflict: 'name,scope' }).select().single();
+
+
+  if (pkgError) {
+    return false;
+  }
+
+  const { data: pkgUser, error: pkgUserError } = await supabase.from('package_user').upsert({
+    package_id: pkg.id,
+    user_id: user?.id
+  }, {
+    onConflict: 'package_id,user_id'
+  });
+
+  if (pkgUserError) {
+    return false;
+  }
+
+  return pkgUser;
+};
+
+export const untrackPackageAction = async (formData: FormData) => {
+  const pkgName = formData.get("pkgName") as string;
+  const pkgScope = formData.get("pkgScope") as string|null;
+  const supabase = createClient();
+  const { data: { user }} = await supabase.auth.getUser();
+
+  const { data: pkg, error: pkgError } = await supabase.from('packages').select('id').eq('name', pkgName).eq('scope', pkgScope).single();
+
+  if (pkgError) {
+    return false;
+  }
+
+  const { data: pkgUser, error: pkgUserError } = await supabase.from('package_user').delete().eq('package_id', pkg.id).eq('user_id', user?.id);
+
+  if (pkgUserError) {
+    return false;
+  }
+
+  return pkgUser;
+}
