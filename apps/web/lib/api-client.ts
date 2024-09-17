@@ -1,28 +1,32 @@
-import { createClient } from "@/utils/supabase/client";
+import { createClient } from "@/utils/supabase/server";
 
-interface FetchOptions extends RequestInit {
-  headers?: HeadersInit;
-}
+// interface FetchOptions extends RequestInit {
+//   headers?: HeadersInit;
+// }
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
-const HEADERS: HeadersInit = {
+const HEADERS: Record<string, any> = {
   'Content-Type': 'application/json',
 };
-const getAuthHeader = async () => {
+
+const getAuthHeader = async (): Promise<any> => {
   const supabase = createClient();
-  const session = await supabase.auth.getSession()
+  const { data: { session }, error } = await supabase.auth.getSession();
 
-  console.log(session)
+  if(!session || !session.access_token || error) {
+    console.error('Fetch Error:', error || 'No session');
+    return {};
+  }
 
-  return { Authorization: `Bearer sdfsdfsfdsf` };
+  return { Authorization: `Bearer ${session.access_token}` };
 }
 
 
-export async function apiClient<T = any>(endpoint: string, options: FetchOptions = {}): Promise<T> {
+export async function apiClient<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const url = `${BASE_URL}${endpoint}`;
 
   // Merge the default headers with any headers provided in options
-  const headers = { ...HEADERS, ...getAuthHeader(), ...options.headers };
+  const headers: any = { ...HEADERS, ...options.headers, ...(await getAuthHeader()) };
 
   try {
       const response = await fetch(url, { ...options, headers });

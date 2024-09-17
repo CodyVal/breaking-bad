@@ -7,6 +7,8 @@ export class PackagesController {
   @Get('/')
   @UseGuards(SupabaseGuard)
   async getPackages() {
-    return 'Hello World';
+    return {
+      "hello": "world"
+    };
   }
 }
