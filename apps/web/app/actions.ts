@@ -4,6 +4,7 @@ import { encodedRedirect } from "@/utils/utils";
 import { createClient } from "@/utils/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
@@ -156,7 +157,8 @@ export const trackPackageAction = async (formData: FormData) => {
     return false;
   }
 
-  return pkgUser;
+  revalidatePath('/protected');
+  revalidatePath('/protected/tracked');
 };
 
 export const untrackPackageAction = async (formData: FormData) => {
@@ -177,5 +179,6 @@ export const untrackPackageAction = async (formData: FormData) => {
     return false;
   }
 
-  return pkgUser;
+  revalidatePath('/protected');
+  revalidatePath('/protected/tracked');
 }
