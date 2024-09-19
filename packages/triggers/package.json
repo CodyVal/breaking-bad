@@ -1,0 +1,23 @@
+{
+  "name": "@repo/triggers",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "npx trigger.dev@latest dev",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "sideEffects": false,
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@trigger.dev/sdk": "^3.0.5"
+  },
+  "devDependencies": {
+    "@trigger.dev/build": "^3.0.5"
+  }
+}

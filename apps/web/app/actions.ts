@@ -6,6 +6,9 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
+import type { helloWorldTask } from "@repo/triggers";
+import { tasks } from "@trigger.dev/sdk/v3";
+
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
   const password = formData.get("password")?.toString();
@@ -157,6 +160,7 @@ export const trackPackageAction = async (formData: FormData) => {
     return false;
   }
 
+  myTask();
   revalidatePath('/protected');
   revalidatePath('/protected/tracked');
 };
@@ -181,4 +185,22 @@ export const untrackPackageAction = async (formData: FormData) => {
 
   revalidatePath('/protected');
   revalidatePath('/protected/tracked');
+}
+
+
+
+export async function myTask() {
+  try {
+    const handle = await tasks.trigger<typeof helloWorldTask>(
+      "hello-world",
+      "James"
+    );
+
+    return { handle };
+  } catch (error) {
+    console.error(error);
+    return {
+      error: "something went wrong",
+    };
+  }
 }
