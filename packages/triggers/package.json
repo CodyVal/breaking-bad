@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "dev": "npx trigger.dev@latest dev",
+    "dev": "trigger dev",
+    "deploy": "trigger deploy",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "exports": {
@@ -15,9 +16,15 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@octokit/auth-app": "^7.1.1",
+    "@octokit/rest": "^21.0.2",
+    "@supabase/supabase-js": "^2.45.4",
     "@trigger.dev/sdk": "^3.0.5"
   },
   "devDependencies": {
-    "@trigger.dev/build": "^3.0.5"
+    "@repo/types": "workspace:*",
+    "@trigger.dev/build": "^3.0.5",
+    "@types/node": "^22.5.5",
+    "trigger.dev": "^3.0.5"
   }
 }

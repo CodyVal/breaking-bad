@@ -1,1 +1,1 @@
-export * from './example'
+export * from './fetch-release-notes'

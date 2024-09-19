@@ -1,0 +1,15 @@
+{
+  "name": "@repo/types",
+  "version": "1.0.0",
+  "main": "index.js",
+  "exports": {
+    "./database": "./src/database.types.ts"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "“Valentin <valentin@whatdafox.com> (http://twitter.com/valentinprngd)",
+  "license": "ISC",
+  "description": ""
+}

@@ -6,7 +6,8 @@
     "dev": "turbo dev",
     "lint": "turbo lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "webhooks": "lt --port 3000 -s breaking-bad"
+    "webhooks": "lt --port 3000 -s breaking-bad",
+    "types:generate": "turbo types:generate --ui stream"
   },
   "devDependencies": {
     "prettier": "^3.2.5",

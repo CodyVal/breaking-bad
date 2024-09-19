@@ -4,7 +4,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "types:generate": "supabase gen types --lang=typescript --local > ../../packages/types/src/database.types.ts"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.1.1",
@@ -29,6 +30,7 @@
     "react-dom": "18.2.0"
   },
   "devDependencies": {
+    "@repo/types": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/node": "20.10.6",
     "@types/react": "18.2.46",

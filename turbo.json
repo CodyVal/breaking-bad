@@ -10,6 +10,11 @@
     "lint": {
       "dependsOn": ["^lint"]
     },
+    "types:generate": {
+      "dependsOn": ["^types:generate"],
+      "cache": false,
+      "persistent": false
+    },
     "dev": {
       "cache": false,
       "persistent": true
