@@ -7,7 +7,7 @@ export function TrackPackage({ pkg, isTracked }: any) {
   const formData = new FormData();
   formData.set("pkgName", pkg.name);
   formData.set("pkgScope", pkg.scope);
-  formData.set("pkgRepository", pkg.links.repository);
+  formData.set("pkgRepository", pkg.links ? pkg.links.repository : pkg.repository);
 
   async function handleCheckedChange(checked: boolean) {
     checked ? await trackPackageAction(formData) : await untrackPackageAction(formData);

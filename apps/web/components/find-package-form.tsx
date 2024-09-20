@@ -32,11 +32,7 @@ export function FindPackageForm({ trackedPackagesNames = [] }: FindPackageFormPr
 
   return (
     <>
-      <form className="flex flex-col w-full max-w-md p-4 gap-2 [&>input]:mb-4">
-        <h1 className="text-2xl font-medium">Find Package</h1>
-        <p className="text-sm text-foreground/60">
-          Please enter a package name
-        </p>
+      <form className="flex flex-col w-full max-w-md gap-2 [&>input]:mb-4">
         <Label htmlFor="password">Package Name</Label>
         <Input
           type="text"

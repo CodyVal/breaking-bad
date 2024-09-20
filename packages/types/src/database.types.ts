@@ -38,18 +38,21 @@ export type Database = {
         Row: {
           changelog: string
           created_at: string
+          embedding: string | null
           id: number
           package_id: number
         }
         Insert: {
           changelog: string
           created_at?: string
+          embedding?: string | null
           id?: number
           package_id: number
         }
         Update: {
           changelog?: string
           created_at?: string
+          embedding?: string | null
           id?: number
           package_id?: number
         }
@@ -126,6 +129,7 @@ export type Database = {
       releases: {
         Row: {
           created_at: string
+          embedding: string | null
           id: number
           package_id: number
           published_at: string | null
@@ -134,6 +138,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          embedding?: string | null
           id?: number
           package_id: number
           published_at?: string | null
@@ -142,6 +147,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          embedding?: string | null
           id?: number
           package_id?: number
           published_at?: string | null
@@ -192,7 +198,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      match_releases: {
+        Args: {
+          query_embedding: string
+          match_threshold: number
+          match_count: number
+        }
+        Returns: {
+          created_at: string
+          embedding: string | null
+          id: number
+          package_id: number
+          published_at: string | null
+          release_notes: string
+          version: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

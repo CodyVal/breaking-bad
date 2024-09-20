@@ -5,10 +5,11 @@ import { createClient } from "@/utils/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-
 import type { fetchReleaseNotesTask } from "@repo/triggers";
 import { tasks } from "@trigger.dev/sdk/v3";
 import { Database } from "@repo/types/database";
+import { embed } from 'ai';
+import { openai } from '@ai-sdk/openai';
 
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
@@ -237,3 +238,32 @@ export const fetchReleaseNotes = async (pkg: any) => {
     };
   }
 }
+
+export const matchReleases = async (message: string) => {
+  const supabase = createClient<Database>();
+
+  try {
+    // Generate embedding for the message
+    const { embedding: embeddingResponse } = await embed({
+      model: openai.embedding('text-embedding-3-small'),
+      value: message,
+    })
+
+    const embedding = embeddingResponse;
+
+    // Call the match_releases RPC function
+    const { data, error } = await supabase.rpc('match_releases', {
+      query_embedding: JSON.stringify(embedding),
+      match_threshold: 0, // Adjust this threshold as needed
+      match_count: 5,
+    });
+
+    if (error) throw error;
+
+    return data;
+  } catch (error) {
+    console.error('Error in matchReleases:', error);
+    throw error;
+  }
+};
+
