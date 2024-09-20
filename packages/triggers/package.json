@@ -16,13 +16,18 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@ai-sdk/openai": "^0.0.60",
+    "@huggingface/transformers": "3.0.0-alpha.15",
     "@octokit/auth-app": "^7.1.1",
     "@octokit/rest": "^21.0.2",
     "@supabase/supabase-js": "^2.45.4",
-    "@trigger.dev/sdk": "^3.0.5"
+    "@trigger.dev/sdk": "^3.0.5",
+    "ai": "^3.3.43",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@repo/types": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
     "@trigger.dev/build": "^3.0.5",
     "@types/node": "^22.5.5",
     "trigger.dev": "^3.0.5"

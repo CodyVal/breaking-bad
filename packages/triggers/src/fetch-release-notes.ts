@@ -3,6 +3,8 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import { Database } from '@repo/types/database'
 import { Octokit } from '@octokit/rest'
 import { createAppAuth } from '@octokit/auth-app'
+import { embed } from 'ai'
+import { openai } from '@ai-sdk/openai'
 
 export const fetchReleaseNotesTask = task({
   id: 'fetch-release-notes',
@@ -46,14 +48,12 @@ export const fetchReleaseNotesTask = task({
     logger.log(`Fetching changelog for package: ${packageData.name}`, {
       packageData,
     })
-    const changelogContent = await fetchChangelog(octokit, packageData)
+    const result = await fetchChangelog(octokit, packageData)
 
-    logger.log(`Insert changelog into database`, { changelogContent })
-    const changelog = await insertChangelog(
-      supabase,
-      packageData.id,
-      changelogContent
-    )
+    logger.log(`Insert changelog into database`, {
+      changelogContent: result?.changelog,
+    })
+    const changelog = await insertChangelog(supabase, packageData.id, result)
 
     return {
       packageName: packageData.name,
@@ -90,6 +90,7 @@ async function fetchChangelog(octokit: Octokit, packageData: any) {
   }
 
   let changelog: string | null = null
+  let embedding: any | null = null
 
   try {
     const { data: changelogContent } = await octokit.rest.repos.getContent({
@@ -102,6 +103,7 @@ async function fetchChangelog(octokit: Octokit, packageData: any) {
       changelog = Buffer.from(changelogContent.content, 'base64').toString(
         'utf-8'
       )
+      embedding = await generateEmbeddings(changelog)
     }
   } catch (error: any) {
     if (error?.status === 404) {
@@ -110,7 +112,10 @@ async function fetchChangelog(octokit: Octokit, packageData: any) {
     throw error
   }
 
-  return changelog || null
+  return {
+    changelog,
+    embedding,
+  }
 }
 
 async function fetchGitHubReleases(octokit: Octokit, packageData: any) {
@@ -128,17 +133,22 @@ async function fetchGitHubReleases(octokit: Octokit, packageData: any) {
     per_page: 100, // Adjust as needed
   })
 
-  return githubReleases
-    .filter(
-      (release: any) => !release.draft && release.body && release.published_at
-    )
-    .map((release) => ({
+  const filteredReleases = githubReleases.filter(
+    (release: any) => !release.draft && release.body && release.published_at
+  )
+
+  const releases = await Promise.all(
+    filteredReleases.map(async (release) => ({
       package_id: packageData.id,
       version: release.tag_name,
       release_notes: release.body as string,
       created_at: release.created_at,
       published_at: release.published_at,
+      embedding: await generateEmbeddings(release.body as string),
     }))
+  )
+
+  return releases
 }
 
 async function insertReleases(
@@ -160,15 +170,15 @@ async function insertReleases(
 async function insertChangelog(
   supabase: SupabaseClient<Database>,
   packageId: number,
-  changelog: string | null
+  { changelog, embedding }: any
 ) {
-  if (!changelog) {
+  if (!changelog || !embedding) {
     return null
   }
 
   const { data, error } = await supabase
     .from('changelogs')
-    .upsert({ package_id: packageId, changelog })
+    .upsert({ package_id: packageId, changelog, embedding })
     .select('id')
 
   if (error) {
@@ -176,4 +186,13 @@ async function insertChangelog(
   }
 
   return data
+}
+
+async function generateEmbeddings(value: string) {
+  const { embedding } = await embed({
+    model: openai.embedding('text-embedding-3-small'),
+    value,
+  })
+
+  return embedding
 }
