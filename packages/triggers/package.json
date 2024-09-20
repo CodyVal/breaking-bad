@@ -17,7 +17,6 @@
   "description": "",
   "dependencies": {
     "@ai-sdk/openai": "^0.0.60",
-    "@huggingface/transformers": "3.0.0-alpha.15",
     "@octokit/auth-app": "^7.1.1",
     "@octokit/rest": "^21.0.2",
     "@supabase/supabase-js": "^2.45.4",
