@@ -210,7 +210,7 @@ importers:
         version: 20.16.5
       '@types/react':
         specifier: ^18.2.61
-        version: 18.3.7
+        version: 18.3.8
       '@types/react-dom':
         specifier: ^18.2.19
         version: 18.3.0
@@ -1457,8 +1457,8 @@ packages:
   '@types/react@18.2.46':
     resolution: {integrity: sha512-nNCvVBcZlvX4NU1nRRNV/mFl1nNRuTuslAJglQsq+8ldXe5Xv0Wd2f7WTE3jOxhLH2BFfiZGC6GCp+kHQbgG+w==}
 
-  '@types/react@18.3.7':
-    resolution: {integrity: sha512-KUnDCJF5+AiZd8owLIeVHqmW9yM4sqmDVf2JRJiBMFkGvkoZ4/WyV2lL4zVsoinmRS/W3FeEdZLEWFRofnT2FQ==}
+  '@types/react@18.3.8':
+    resolution: {integrity: sha512-syBUrW3/XpnW4WJ41Pft+I+aPoDVbrBVQGEnbD7NijDGlVC+8gV/XKRY+7vMDlfPpbwYt0l1vd/Sj8bJGMbs9Q==}
 
   '@types/retry@0.12.2':
     resolution: {integrity: sha512-XISRgDJ2Tc5q4TRqvgJtzsRkFYNJzZrhTdtMoGVBttwzzQJkPnS3WWTFc7kuDRoPtPakl+T+OfdEUjYJj7Jbow==}
@@ -2254,8 +2254,8 @@ packages:
   eastasianwidth@0.2.0:
     resolution: {integrity: sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA==}
 
-  electron-to-chromium@1.5.25:
-    resolution: {integrity: sha512-kMb204zvK3PsSlgvvwzI3wBIcAw15tRkYk+NQdsjdDtcQWTp2RABbMQ9rUBy8KNEOM+/E6ep+XC3AykiWZld4g==}
+  electron-to-chromium@1.5.26:
+    resolution: {integrity: sha512-Z+OMe9M/V6Ep9n/52+b7lkvYEps26z4Yz3vjWL1V61W0q+VLF1pOHhMY17sa4roz4AWmULSI8E6SAojZA5L0YQ==}
 
   emoji-regex@8.0.0:
     resolution: {integrity: sha512-MSjYzcWNOA0ewAHpz0MxpYFvwg6yjy1NG3xteoqz644VCo/RPgnr1/GGt+ic3iJTzQ8Eu3TdM14SawnVUmGE6A==}
@@ -5940,11 +5940,11 @@ snapshots:
 
   '@types/react-dom@18.2.18':
     dependencies:
-      '@types/react': 18.3.7
+      '@types/react': 18.3.8
 
   '@types/react-dom@18.3.0':
     dependencies:
-      '@types/react': 18.3.7
+      '@types/react': 18.3.8
 
   '@types/react@18.2.46':
     dependencies:
@@ -5952,7 +5952,7 @@ snapshots:
       '@types/scheduler': 0.23.0
       csstype: 3.1.3
 
-  '@types/react@18.3.7':
+  '@types/react@18.3.8':
     dependencies:
       '@types/prop-types': 15.7.13
       csstype: 3.1.3
@@ -5973,7 +5973,7 @@ snapshots:
 
   '@types/ws@8.5.12':
     dependencies:
-      '@types/node': 20.16.5
+      '@types/node': 22.5.5
 
   '@typescript-eslint/eslint-plugin@6.21.0(@typescript-eslint/parser@6.21.0(eslint@8.57.1)(typescript@5.6.2))(eslint@8.57.1)(typescript@5.6.2)':
     dependencies:
@@ -6509,7 +6509,7 @@ snapshots:
   browserslist@4.23.3:
     dependencies:
       caniuse-lite: 1.0.30001662
-      electron-to-chromium: 1.5.25
+      electron-to-chromium: 1.5.26
       node-releases: 2.0.18
       update-browserslist-db: 1.1.0(browserslist@4.23.3)
 
@@ -6888,7 +6888,7 @@ snapshots:
 
   eastasianwidth@0.2.0: {}
 
-  electron-to-chromium@1.5.25: {}
+  electron-to-chromium@1.5.26: {}
 
   emoji-regex@8.0.0: {}
 
