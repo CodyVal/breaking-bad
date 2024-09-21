@@ -15,6 +15,10 @@ export function FindPackageForm({ trackedPackagesNames = [] }: FindPackageFormPr
   const [data, setData] = useState([])
   const [watchList, setWatchList] = useState([])
 
+  const handleSubmit = (e: any) => {
+    e.preventDefault();
+  }
+
   const handleSearch = debounce(async (e: any) => {
     const pkg = e.target.value
 
@@ -32,7 +36,7 @@ export function FindPackageForm({ trackedPackagesNames = [] }: FindPackageFormPr
 
   return (
     <>
-      <form className="flex flex-col w-full max-w-md gap-2 [&>input]:mb-4">
+      <form onSubmit={handleSubmit} className="flex flex-col w-full max-w-md gap-y-2 [&>input]:mb-4">
         <Label htmlFor="password">Package Name</Label>
         <Input
           type="text"

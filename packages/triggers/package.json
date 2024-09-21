@@ -23,8 +23,10 @@
     "@trigger.dev/sdk": "^3.0.5",
     "ai": "^3.3.43",
     "gpt-tokenizer": "^2.3.0",
+    "markdown-it": "^14.1.0",
     "remark": "^15.0.1",
     "remark-html": "^16.0.1",
+    "string-strip-html": "^13.4.8",
     "zod": "^3.23.8"
   },
   "devDependencies": {

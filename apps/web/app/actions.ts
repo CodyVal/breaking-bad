@@ -8,8 +8,8 @@ import { revalidatePath } from "next/cache";
 import type { fetchReleaseNotesTask } from "@repo/triggers";
 import { tasks } from "@trigger.dev/sdk/v3";
 import { Database } from "@repo/types/database";
-import { embed } from 'ai';
-import { openai } from '@ai-sdk/openai';
+import { embed } from "ai";
+import { openai } from "@ai-sdk/openai";
 
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
@@ -39,7 +39,7 @@ export const signUpAction = async (formData: FormData) => {
       "Thanks for signing up! Please check your email for a verification link."
     );
   }
-}
+};
 
 export const signInAction = async (formData: FormData) => {
   const email = formData.get("email") as string;
@@ -56,7 +56,7 @@ export const signInAction = async (formData: FormData) => {
   }
 
   return redirect("/protected");
-}
+};
 
 export const forgotPasswordAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
@@ -90,7 +90,7 @@ export const forgotPasswordAction = async (formData: FormData) => {
     "/forgot-password",
     "Check your email for a link to reset your password."
   );
-}
+};
 
 export const resetPasswordAction = async (formData: FormData) => {
   const supabase = createClient<Database>();
@@ -127,18 +127,18 @@ export const resetPasswordAction = async (formData: FormData) => {
   }
 
   encodedRedirect("success", "/protected/reset-password", "Password updated");
-}
+};
 
 export const signOutAction = async () => {
   const supabase = createClient<Database>();
   await supabase.auth.signOut();
   return redirect("/sign-in");
-}
+};
 
 export const trackPackageAction = async (formData: FormData) => {
-  const pkgName = formData.get("pkgName") as string || '';
-  const pkgScope = formData.get("pkgScope") as string || '';
-  const pkgRepository = formData.get("pkgRepository") as string || '';
+  const pkgName = (formData.get("pkgName") as string) || "";
+  const pkgScope = (formData.get("pkgScope") as string) || "";
+  const pkgRepository = (formData.get("pkgRepository") as string) || "";
   const supabase = createClient<Database>();
   const {
     data: { user },
@@ -184,11 +184,11 @@ export const trackPackageAction = async (formData: FormData) => {
   await fetchReleaseNotes(pkg);
   revalidatePath("/protected");
   revalidatePath("/protected/tracked");
-}
+};
 
 export const untrackPackageAction = async (formData: FormData) => {
-  const pkgName = formData.get("pkgName") as string || '';
-  const pkgScope = formData.get("pkgScope") as string || '';
+  const pkgName = (formData.get("pkgName") as string) || "";
+  const pkgScope = (formData.get("pkgScope") as string) || "";
   const supabase = createClient<Database>();
   const {
     data: { user },
@@ -221,7 +221,7 @@ export const untrackPackageAction = async (formData: FormData) => {
 
   revalidatePath("/protected");
   revalidatePath("/protected/tracked");
-}
+};
 
 export const fetchReleaseNotes = async (pkg: any) => {
   try {
@@ -237,7 +237,32 @@ export const fetchReleaseNotes = async (pkg: any) => {
       error: "something went wrong",
     };
   }
-}
+};
+
+export const checkNPM = async (pkg: string) => {
+  const response = await fetch(`https://registry.npmjs.org/${pkg}/latest`);
+
+  if (!response.ok) {
+    return "Package not found";
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+export const fetchReleases = async (pkg: string) => {
+  const supabase = createClient<Database>();
+
+  const { data, error } = await supabase
+    .from("releases")
+    .select("id,version,packages(name)")
+    .ilike("packages.name", pkg)
+    .limit(100);
+
+  if (error) throw error;
+
+  return { releases: data };
+};
 
 export const matchReleases = async (message: string) => {
   const supabase = createClient<Database>();
@@ -245,25 +270,26 @@ export const matchReleases = async (message: string) => {
   try {
     // Generate embedding for the message
     const { embedding: embeddingResponse } = await embed({
-      model: openai.embedding('text-embedding-3-small'),
+      model: openai.embedding("text-embedding-3-small"),
       value: message,
-    })
+    });
 
     const embedding = embeddingResponse;
 
     // Call the match_releases RPC function
-    const { data, error } = await supabase.rpc('match_releases', {
+    const { data, error } = await supabase.rpc("match_releases", {
       query_embedding: JSON.stringify(embedding),
-      match_threshold: 0, // Adjust this threshold as needed
-      match_count: 5,
+      match_threshold: 0.5, // Adjust this threshold as needed
+      match_count: 10,
     });
 
     if (error) throw error;
 
+    console.log("Embeddings", data);
+
     return data;
   } catch (error) {
-    console.error('Error in matchReleases:', error);
+    console.error("Error in matchReleases:", error);
     throw error;
   }
 };
-
