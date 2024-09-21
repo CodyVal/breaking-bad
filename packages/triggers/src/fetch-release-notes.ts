@@ -5,6 +5,9 @@ import { Octokit } from '@octokit/rest'
 import { createAppAuth } from '@octokit/auth-app'
 import { embed } from 'ai'
 import { openai } from '@ai-sdk/openai'
+import { remark } from 'remark'
+import html from 'remark-html'
+import { encode } from 'gpt-tokenizer'
 
 export const fetchReleaseNotesTask = task({
   id: 'fetch-release-notes',
@@ -90,7 +93,7 @@ async function fetchChangelog(octokit: Octokit, packageData: any) {
   }
 
   let changelog: string | null = null
-  let embedding: any | null = null
+  let embedding: number[][] | null = null
 
   try {
     const { data: changelogContent } = await octokit.rest.repos.getContent({
@@ -103,7 +106,10 @@ async function fetchChangelog(octokit: Octokit, packageData: any) {
       changelog = Buffer.from(changelogContent.content, 'base64').toString(
         'utf-8'
       )
-      embedding = await generateEmbeddings(changelog)
+
+      if (changelog) {
+        embedding = await processMarkdown(changelog)
+      }
     }
   } catch (error: any) {
     if (error?.status === 404) {
@@ -114,7 +120,7 @@ async function fetchChangelog(octokit: Octokit, packageData: any) {
 
   return {
     changelog,
-    embedding,
+    embedding: embedding ? embedding[0] : null,
   }
 }
 
@@ -138,14 +144,17 @@ async function fetchGitHubReleases(octokit: Octokit, packageData: any) {
   )
 
   const releases = await Promise.all(
-    filteredReleases.map(async (release) => ({
-      package_id: packageData.id,
-      version: release.tag_name,
-      release_notes: release.body as string,
-      created_at: release.created_at,
-      published_at: release.published_at,
-      embedding: await generateEmbeddings(release.body as string),
-    }))
+    filteredReleases.map(async (release) => {
+      const embedding = await processMarkdown(release.body as string)
+      return {
+        package_id: packageData.id,
+        version: release.tag_name,
+        release_notes: release.body as string,
+        created_at: release.created_at,
+        published_at: release.published_at,
+        embedding: embedding[0],
+      }
+    })
   )
 
   return releases
@@ -188,11 +197,60 @@ async function insertChangelog(
   return data
 }
 
-async function generateEmbeddings(value: string) {
-  const { embedding } = await embed({
-    model: openai.embedding('text-embedding-3-small'),
-    value,
-  })
+export async function parseMarkdown(markdownContent: string): Promise<string> {
+  const processedContent = await remark().use(html).process(markdownContent)
+  return processedContent.toString() // Convert markdown to HTML or plain text
+}
 
-  return embedding
+function chunkTextByTokens(text: string, maxTokens: number): string[] {
+  const sentences = text.split('. ')
+  let chunks: string[] = []
+  let currentChunk: string[] = []
+  let currentTokenCount = 0
+
+  for (const sentence of sentences) {
+    const tokenCount = encode(sentence).length
+
+    if (currentTokenCount + tokenCount > maxTokens) {
+      chunks.push(currentChunk.join('. ') + '.')
+      currentChunk = [sentence]
+      currentTokenCount = tokenCount
+    } else {
+      currentChunk.push(sentence)
+      currentTokenCount += tokenCount
+    }
+  }
+
+  // Add the last chunk if there is any remaining content
+  if (currentChunk.length > 0) {
+    chunks.push(currentChunk.join('. ') + '.')
+  }
+
+  return chunks
+}
+
+async function generateEmbeddings(chunks: string[]) {
+  const embeddings: number[][] = []
+
+  for (const chunk of chunks) {
+    const { embedding } = await embed({
+      model: openai.embedding('text-embedding-3-small'),
+      value: chunk,
+    })
+
+    embeddings.push(embedding)
+  }
+
+  return embeddings
+}
+
+// Function to chunk text based on token limit
+const MAX_TOKENS = 8192
+async function processMarkdown(markdown: string) {
+  const parsed = await parseMarkdown(markdown)
+  const chunks = chunkTextByTokens(parsed, MAX_TOKENS)
+
+  const embeddings = await generateEmbeddings(chunks)
+
+  return embeddings
 }
