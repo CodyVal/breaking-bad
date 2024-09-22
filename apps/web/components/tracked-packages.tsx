@@ -10,7 +10,7 @@ export default function TrackedPackages({ pkgs, trackedPackagesNames = [], class
     >
       <div>
         <h3 className="text-lg font-medium text-foreground">
-          <a href={pkg.package.links.npm} target="_blank" rel="noopener noreferrer">
+          <a href={pkg.package.links ? pkg.package.links.npm : '#'} target="_blank" rel="noopener noreferrer">
             {pkg.package.name}
           </a>
         </h3>
