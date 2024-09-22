@@ -1,0 +1,34 @@
+{
+  "folders": [
+    {
+      "name": "apps-web",
+      "path": "apps/web"
+    },
+    {
+      "name": "packages-triggers",
+      "path": "packages/triggers"
+    },
+    {
+      "name": "packages-ui",
+      "path": "packages/ui"
+    },
+    {
+      "name": "packages-types",
+      "path": "packages/types"
+    },
+    {
+      "name": "supabase-migrations",
+      "path": "supabase/migrations"
+    },
+    {
+      "name": "project",
+      "path": "./"
+    },
+  ],
+  "settings": {
+    // "files.exclude": {
+    //   "supabase/functions/": true,
+    //   "supabase/migrations/": true
+    // }
+  }
+}
