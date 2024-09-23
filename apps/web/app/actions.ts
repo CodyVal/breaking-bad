@@ -139,6 +139,8 @@ export const trackPackageAction = async (formData: FormData) => {
   const pkgName = (formData.get('pkgName') as string) || ''
   const pkgScope = (formData.get('pkgScope') as string) || ''
   const pkgRepository = (formData.get('pkgRepository') as string) || ''
+
+  console.log('Tracking package', pkgName, pkgScope, pkgRepository)
   const supabase = createClient<Database>()
   const {
     data: { user },

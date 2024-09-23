@@ -1,11 +1,6 @@
 import { FindPackageForm } from '@/components/find-package-form'
+import { fetchNpmPackage } from '@/lib/fetchNpmPackage'
 import { getTrackedPackages, getUser } from '@/utils/supabase/queries'
-
-const fetchNpmPackage = async (pkg: string) => {
-  return fetch(`https://registry.npmjs.org/-/v1/search?text=${pkg}`)
-    .then((res) => res.json())
-    .then((res) => res.objects[0])
-}
 
 export default async function ProtectedPage() {
   const user = await getUser()
