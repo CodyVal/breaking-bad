@@ -1,13 +1,19 @@
-import { checkForSimilarPackages, checkNPM, fetchReleases, matchReleases } from '@/app/actions';
-import { openai } from '@ai-sdk/openai';
-import { convertToCoreMessages, streamText, tool } from 'ai';
-import { z } from 'zod';
+import {
+  checkForSimilarPackages,
+  checkNPM,
+  fetchReleases,
+  fetchTrackedPackages,
+  matchReleases,
+} from '@/app/actions'
+import { openai } from '@ai-sdk/openai'
+import { convertToCoreMessages, streamText, tool } from 'ai'
+import { z } from 'zod'
 
 // Allow streaming responses up to 30 seconds
-export const maxDuration = 30;
+export const maxDuration = 30
 
 export async function POST(req: Request) {
-  const { messages } = await req.json();
+  const { messages } = await req.json()
 
   const result = await streamText({
     model: openai('gpt-4o-mini'),
@@ -21,6 +27,11 @@ export async function POST(req: Request) {
     Otherwise, if no relevant information is found in the tool calls, respond "Sorry, I don't seem to have the knowledge to answer that question."`,
     messages: convertToCoreMessages(messages),
     tools: {
+      fetchUsersTrackedPackages: tool({
+        description: `call this everytime a user asks, fetch a list of packages that the user is tracking. Do not cache this information. Make sure you have the latest information.`,
+        parameters: z.object({}),
+        execute: async () => fetchTrackedPackages(),
+      }),
       checkingNPM: tool({
         description: `if we don't have the package in our knowledge base, check if it's available on NPM, otherwise respond with "I don't know this package".`,
         parameters: z.object({
@@ -49,8 +60,8 @@ export async function POST(req: Request) {
         }),
         execute: async ({ question }) => matchReleases(question),
       }),
-    }
-  });
+    },
+  })
 
-  return result.toDataStreamResponse();
+  return result.toDataStreamResponse()
 }
