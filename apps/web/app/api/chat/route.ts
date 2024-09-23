@@ -4,7 +4,10 @@ import {
   fetchReleases,
   fetchTrackedPackages,
   matchReleases,
+  trackPackageAction,
+  untrackPackageAction,
 } from '@/app/actions'
+import { fetchNpmPackage } from '@/lib/fetchNpmPackage'
 import { openai } from '@ai-sdk/openai'
 import { convertToCoreMessages, streamText, tool } from 'ai'
 import { z } from 'zod'
@@ -27,6 +30,44 @@ export async function POST(req: Request) {
     Otherwise, if no relevant information is found in the tool calls, respond "Sorry, I don't seem to have the knowledge to answer that question."`,
     messages: convertToCoreMessages(messages),
     tools: {
+      trackPackage: tool({
+        description: `Track a package for a user. Make sure to store this information in the database.`,
+        parameters: z.object({
+          pkg: z.string().describe('the package name'),
+        }),
+        execute: async ({ pkg }) => {
+          const pkgData = await fetchNpmPackage(pkg)
+
+          const formData = new FormData()
+          formData.set('pkgName', pkgData.package.name)
+          formData.set('pkgScope', pkgData.package.scope)
+          formData.set(
+            'pkgRepository',
+            pkgData.package.links
+              ? pkgData.package.links.repository
+              : pkgData.package.repository
+          )
+
+          await trackPackageAction(formData)
+          return `I have started tracking ${pkgData.package.name} for you.`
+        },
+      }),
+      untrackPackage: tool({
+        description: `Untrack a package for a user. Make sure to store this information in the database.`,
+        parameters: z.object({
+          pkg: z.string().describe('the package name'),
+        }),
+        execute: async ({ pkg }) => {
+          const pkgData = await fetchNpmPackage(pkg)
+
+          const formData = new FormData()
+          formData.set('pkgName', pkgData.package.name)
+          formData.set('pkgScope', pkgData.package.scope)
+
+          await untrackPackageAction(formData)
+          return `I have stopped tracking ${pkgData.package.name} for you.`
+        },
+      }),
       fetchUsersTrackedPackages: tool({
         description: `call this everytime a user asks, fetch a list of packages that the user is tracking. Do not cache this information. Make sure you have the latest information.`,
         parameters: z.object({}),
