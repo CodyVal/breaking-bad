@@ -250,17 +250,47 @@ export const checkNPM = async (pkg: string) => {
   return data;
 };
 
-export const fetchReleases = async (pkg: string) => {
+export const checkForSimilarPackages = async (pkg: string) => {
   const supabase = createClient<Database>();
 
   const { data, error } = await supabase
+    .from("packages")
+    .select()
+    .ilike("name", `%${pkg}%`);
+
+  if (error) {
+    throw error;
+  }
+
+  console.log(data);
+
+  return data;
+};
+
+export const fetchReleases = async (
+  pkg: string
+): Promise<{ releases: any[] }> => {
+  const supabase = createClient<Database>();
+
+  const { data: pkgRecord, error: errorPkg } = await supabase
+    .from("packages")
+    .select("id")
+    .eq("name", pkg)
+    .single();
+
+  if (!pkgRecord) {
+    return { releases: [] };
+  }
+
+  const { data, error } = await supabase
     .from("releases")
-    .select("id,version,packages(name)")
-    .ilike("packages.name", pkg)
-    .limit(100);
+    .select("id,version,packages:package_id(name)")
+    .eq("package_id", pkgRecord.id)
+    .limit(10);
 
   if (error) throw error;
 
+  console.log(data);
   return { releases: data };
 };
 
