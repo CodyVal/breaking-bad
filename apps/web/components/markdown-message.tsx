@@ -12,7 +12,7 @@ const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ content }) => {
 
   return (
     <div
-      className="prose prose-sm sm:prose lg:prose-lg xl:prose-xl max-w-none"
+      className="prose prose-base prose-p:leading-normal prose-headings:leading-normal prose-headings:my-0 prose-p:my-0 prose-ul:my-0 prose-ul:flex prose-ul:flex-col prose-ol:my-0 prose-li:my-0 dark:prose-invert max-w-none"
       dangerouslySetInnerHTML={{ __html: renderedContent }}
     />
   );

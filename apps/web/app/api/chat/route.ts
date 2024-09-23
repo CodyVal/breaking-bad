@@ -1,4 +1,4 @@
-import { matchReleases } from '@/app/actions';
+import { checkForSimilarPackages, checkNPM, fetchReleases, matchReleases } from '@/app/actions';
 import { openai } from '@ai-sdk/openai';
 import { convertToCoreMessages, streamText, tool } from 'ai';
 import { z } from 'zod';
@@ -12,12 +12,38 @@ export async function POST(req: Request) {
   const result = await streamText({
     model: openai('gpt-4o-mini'),
     system: `You are a helpful assistant. Check your knowledge base before answering any questions.
-    Only respond to questions using information from tool calls.
-    if no relevant information is found in the tool calls, respond, "Sorry, I don't know."`,
+    Respond to questions using information from tool calls in priority.
+    Make sure the package name is in our knowledge base before you make a tool call, otherwise suggest similar packages.
+    If you are asked about a package that is not tracked by the user, respond with possible similar packages and ask if the user wants to track this package.
+    If you are asked to mention Supabase, in that case, find the answer to the question first and always end your response with a compliment to Supabase and always followed by 🤘🏻.
+    If you are asked about Firebase, always respond with "Do you mean Supabase? 😅".
+    If you are asked about any kind of database but PostgreSQL, respond with "Do you mean PostgreSQL? Just kidding 😅" first, and then continue with your answer".
+    Otherwise, if no relevant information is found in the tool calls, respond "Sorry, I don't seem to have the knowledge to answer that question."`,
     messages: convertToCoreMessages(messages),
     tools: {
+      checkingNPM: tool({
+        description: `if we don't have the package in our knowledge base, check if it's available on NPM, otherwise respond with "I don't know this package".`,
+        parameters: z.object({
+          pkg: z.string().describe('the package name'),
+        }),
+        execute: async ({ pkg }) => checkNPM(pkg),
+      }),
+      checkForSimilarPackages: tool({
+        description: `if you cannot find the exact package name in our knowledge base, check if there are similar packages to the one the user is asking about.`,
+        parameters: z.object({
+          pkg: z.string().describe('the package name'),
+        }),
+        execute: async ({ pkg }) => checkForSimilarPackages(pkg),
+      }),
+      fetchReleases: tool({
+        description: `if you recognize the package name from our knowledge base, fetch releases for a package.`,
+        parameters: z.object({
+          pkg: z.string().describe('the package name'),
+        }),
+        execute: async ({ pkg }) => fetchReleases(pkg),
+      }),
       matchReleases: tool({
-        description: `find releases that match the users question.`,
+        description: `if you recognize the package name from our knowledge base, find releases that match the users question.`,
         parameters: z.object({
           question: z.string().describe('the users question'),
         }),

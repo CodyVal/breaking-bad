@@ -5,6 +5,13 @@ import { Octokit } from '@octokit/rest'
 import { createAppAuth } from '@octokit/auth-app'
 import { embed } from 'ai'
 import { openai } from '@ai-sdk/openai'
+import { stripHtml } from 'string-strip-html'
+import markdown from 'markdown-it'
+import { encode } from 'gpt-tokenizer'
+
+const md = new markdown({
+  html: true,
+})
 
 export const fetchReleaseNotesTask = task({
   id: 'fetch-release-notes',
@@ -37,10 +44,19 @@ export const fetchReleaseNotesTask = task({
     logger.log(`Fetching package data for package: ${payload.id}`, { payload })
     const packageData = await fetchPackageData(supabase, payload.id)
 
+    logger.log(`Fetching existing releases for package: ${packageData.name}`, {
+      packageData,
+    })
+    const existingReleases = await fetchExistingReleases(supabase, packageData)
+
     logger.log(`Fetching releases for package: ${packageData.name}`, {
       packageData,
     })
-    const githubReleases = await fetchGitHubReleases(octokit, packageData)
+    const githubReleases = await fetchGitHubReleases(
+      octokit,
+      packageData,
+      existingReleases
+    )
 
     logger.log(`Insert releases into database`, { githubReleases })
     const releases = await insertReleases(supabase, githubReleases)
@@ -80,6 +96,22 @@ async function fetchPackageData(
   return data
 }
 
+async function fetchExistingReleases(
+  supabase: SupabaseClient<Database>,
+  packageData: any
+) {
+  const { data, error } = await supabase
+    .from('releases')
+    .select('version')
+    .eq('package_id', packageData.id)
+
+  if (error) {
+    throw new Error(`Error fetching existing releases: ${error.message}`)
+  }
+
+  return data.map((release) => release.version)
+}
+
 async function fetchChangelog(octokit: Octokit, packageData: any) {
   const [owner, repo] = packageData.repository
     .replace('https://github.com/', '')
@@ -90,7 +122,7 @@ async function fetchChangelog(octokit: Octokit, packageData: any) {
   }
 
   let changelog: string | null = null
-  let embedding: any | null = null
+  let embedding: number[][] | null = null
 
   try {
     const { data: changelogContent } = await octokit.rest.repos.getContent({
@@ -103,22 +135,29 @@ async function fetchChangelog(octokit: Octokit, packageData: any) {
       changelog = Buffer.from(changelogContent.content, 'base64').toString(
         'utf-8'
       )
-      embedding = await generateEmbeddings(changelog)
+
+      if (changelog) {
+        embedding = await processMarkdown(changelog, packageData, null)
+      }
     }
   } catch (error: any) {
     if (error?.status === 404) {
-      return null
+      return { changelog: null, embedding: null }
     }
     throw error
   }
 
   return {
     changelog,
-    embedding,
+    embedding: embedding ? embedding[0] : null,
   }
 }
 
-async function fetchGitHubReleases(octokit: Octokit, packageData: any) {
+async function fetchGitHubReleases(
+  octokit: Octokit,
+  packageData: any,
+  existingReleases: string[]
+) {
   const [owner, repo] = packageData.repository
     .replace('https://github.com/', '')
     .split('/')
@@ -138,14 +177,23 @@ async function fetchGitHubReleases(octokit: Octokit, packageData: any) {
   )
 
   const releases = await Promise.all(
-    filteredReleases.map(async (release) => ({
-      package_id: packageData.id,
-      version: release.tag_name,
-      release_notes: release.body as string,
-      created_at: release.created_at,
-      published_at: release.published_at,
-      embedding: await generateEmbeddings(release.body as string),
-    }))
+    filteredReleases
+      .filter((release) => !existingReleases.includes(release.tag_name))
+      .map(async (release) => {
+        const embedding = await processMarkdown(
+          release.body as string,
+          packageData,
+          release
+        )
+        return {
+          package_id: packageData.id,
+          version: release.tag_name,
+          release_notes: release.body as string,
+          created_at: release.created_at,
+          published_at: release.published_at,
+          embedding: embedding[0],
+        }
+      })
   )
 
   return releases
@@ -188,11 +236,68 @@ async function insertChangelog(
   return data
 }
 
-async function generateEmbeddings(value: string) {
-  const { embedding } = await embed({
-    model: openai.embedding('text-embedding-3-small'),
-    value,
-  })
+function chunkTextByTokens(
+  text: string,
+  packageData: any,
+  release: any
+): string[] {
+  const MAX_TOKENS = 1536
+  const sentences = text
+    .split('\n')
+    .map(
+      (sentence) =>
+        `${packageData?.name ?? ''} · ${release?.tag_name ?? ''} · ${sentence}`
+    )
+  let chunks: string[] = []
+  let currentChunk: string[] = []
+  let currentTokenCount = 0
 
-  return embedding
+  for (const sentence of sentences) {
+    const tokenCount = encode(sentence).length
+
+    if (currentTokenCount + tokenCount > MAX_TOKENS) {
+      chunks.push(currentChunk.join('. ') + '.')
+      currentChunk = [sentence]
+      currentTokenCount = tokenCount
+    } else {
+      currentChunk.push(sentence)
+      currentTokenCount += tokenCount
+    }
+  }
+
+  // Add the last chunk if there is any remaining content
+  if (currentChunk.length > 0) {
+    chunks.push(currentChunk.join('. ') + '.')
+  }
+
+  return chunks
+}
+
+async function generateEmbeddings(chunks: string[]) {
+  let embeddings: any[] = []
+
+  for (const chunk of chunks) {
+    const { embedding } = await embed({
+      model: openai.embedding('text-embedding-3-small'),
+      value: chunk,
+    })
+    embeddings.push(embedding)
+  }
+
+  return embeddings
+}
+
+// Function to chunk text based on token limit
+async function processMarkdown(
+  markdown: string,
+  packageData: any,
+  release: any
+) {
+  const parsed = await md.render(markdown)
+  const text = stripHtml(parsed).result
+  const chunks = chunkTextByTokens(text, packageData, release)
+
+  const embeddings = await generateEmbeddings(chunks)
+
+  return embeddings
 }

@@ -17,6 +17,7 @@
     "@repo/triggers": "workspace:*",
     "@supabase/ssr": "latest",
     "@supabase/supabase-js": "latest",
+    "@tailwindcss/typography": "^0.5.15",
     "@trigger.dev/sdk": "^3.0.5",
     "ai": "^3.3.43",
     "autoprefixer": "10.4.17",
