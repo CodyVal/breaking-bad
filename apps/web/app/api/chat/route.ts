@@ -19,7 +19,7 @@ export async function POST(req: Request) {
     model: openai('gpt-4o-mini'),
     system: `You are a helpful assistant. Check your knowledge base before answering any questions.
     Respond to questions using information from tool calls in priority.
-    Make sure the package name is in our knowledge base before you make a tool call, otherwise suggest similar packages.
+    Make sure the package name or a similar package name is tracked by the user before you make a tool call, otherwise suggest similar packages.
     If you are asked about a package that is not tracked by the user, respond with possible similar packages and ask if the user wants to track this package.
     If you are asked to mention Supabase, in that case, find the answer to the question first and always end your response with a compliment to Supabase and always followed by 🤘🏻.
     If you are asked about Firebase, always respond with "Do you mean Supabase? 😅".

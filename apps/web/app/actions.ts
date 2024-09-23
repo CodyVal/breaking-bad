@@ -284,9 +284,8 @@ export const fetchReleases = async (
 
   const { data, error } = await supabase
     .from('releases')
-    .select('id,version,packages:package_id(name)')
+    .select('id,version,created_at,packages:package_id(name)')
     .eq('package_id', pkgRecord.id)
-    .limit(10)
 
   if (error) throw error
 
