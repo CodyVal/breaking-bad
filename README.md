@@ -1,81 +1,67 @@
-# Turborepo starter
+# Breaking Bad
 
-This is an official starter Turborepo.
+## What Does the App Do?
 
-## Using this example
+This application takes in **release notes** and **changelogs** from GitHub repositories, processes the Markdown content, and generates **embeddings** for each chunk of the parsed text. These embeddings can be used for various purposes, such as:
 
-Run the following command:
+- **Semantic search** (finding similar release notes or changelogs)
+- **Text clustering**
+- **Content recommendation**
 
-```sh
-npx create-turbo@latest
-```
+The application uses the following steps:
 
-## What's inside?
+1. **Fetches release notes or changelogs** (in `.md` format) from GitHub.
+2. **Parses the Markdown content** into plain text.
+3. **Chunks the text** into manageable pieces based on token limits.
+4. **Generates embeddings** for each chunk using a language model.
+5. **Stores the embeddings** in a Supabase database for further analysis or search purposes.
 
-This Turborepo includes the following packages/apps:
+## Features
 
-### Apps and Packages
+- **Automatic parsing** of GitHub Markdown files.
+- **Token-based chunking** to handle large documents.
+- **Embedding generation** for text using OpenAI or other models.
+- **Supabase integration** for storing and managing embeddings.
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+## Prerequisites
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+Before you begin, ensure you have the following installed on your machine:
 
-### Utilities
+- [Node.js](https://nodejs.org/) (v14+)
+- [pnpm](https://pnpm.io/) (for package management)
+- [Supabase](https://supabase.io/) account (for storing embeddings)
+- You will need to create a `Github App` for the authentication and API calls
+- [GITHUB_CLIENT_ID](https://github.com)
+- [GITHUB_CLIENT_SECRET](https://github.com)
+- [OpenAI API Key](https://beta.openai.com/signup/) (if you're using OpenAI models for embedding generation)
+- [Trigger.dev](https://trigger.dev/docs/introduction) account (for running the triggers and scheduled triggers)
 
-This Turborepo has some additional tools already setup for you:
+## Setup and Installation
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+1. **Clone the repository:**
 
-### Build
+   ```bash
+   git clone https://github.com/yourusername/@codyval/breaking-bad.git
+   cd breaking-bad
+   ```
 
-To build all apps and packages, run the following command:
+2. **Create a Github App:**
 
-```
-cd my-turborepo
-pnpm build
-```
+   - Create an app within your github account
+   - Generate a client secret
+   - Generate a private key
+   - Install the app into your account to get the installation id
 
-### Develop
+3. **Update all the secrets:**
+   You will find a `.env.example` file in each package/app that requires secrets:
 
-To develop all apps and packages, run the following command:
+   - (root)/ -> `.env`
+   - /app/web -> `.env.local`
+   - /packages/triggers -> `.env`
 
-```
-cd my-turborepo
-pnpm dev
-```
+4. **Start the application:**
 
-### Remote Caching
-
-Turborepo can use a technique known as [Remote Caching](https://turbo.build/repo/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup), then enter the following commands:
-
-```
-cd my-turborepo
-npx turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-```
-npx turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turbo.build/repo/docs/core-concepts/monorepos/running-tasks)
-- [Caching](https://turbo.build/repo/docs/core-concepts/caching)
-- [Remote Caching](https://turbo.build/repo/docs/core-concepts/remote-caching)
-- [Filtering](https://turbo.build/repo/docs/core-concepts/monorepos/filtering)
-- [Configuration Options](https://turbo.build/repo/docs/reference/configuration)
-- [CLI Usage](https://turbo.build/repo/docs/reference/command-line-reference)
+   ```
+     pnpm i
+     pnpm run dev
+   ```
